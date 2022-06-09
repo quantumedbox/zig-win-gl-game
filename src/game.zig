@@ -24,13 +24,18 @@ var writer: engine.console.WriterType = undefined;
 // var blockWidth: f32 = undefined;
 // var blockHeight: f32 = undefined;
 
+var track: *tracker.TrackerPlayer = undefined;
+
 export fn initEngine() void {
     _ = engine.setRenderCallback(render);
     _ = engine.setResizeCallback(resize);
-    tracker.play() catch |err| {
-        writer.print("Tracker error: {err}", .{err}) catch @panic("cannot print");
-    };
+    track = tracker.TrackerPlayer.from_file("tracks/example.it", std.heap.page_allocator) catch @panic("cannot print");
+    _ = track;
     // setupGame(initQueueSize);
+}
+
+export fn deinitEngine() void {
+    track.deinit(std.heap.page_allocator);
 }
 
 // fn setupGame(size: u8) void {

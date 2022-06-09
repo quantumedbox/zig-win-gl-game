@@ -9,6 +9,7 @@ const default_window_title = "ASD engine";
 extern var render_callback: ?fn()void;
 extern var resize_callback: ?fn(width: c_uint, height: c_uint)void;
 extern fn initEngine() void;
+extern fn deinitEngine() void;
 
 pub export fn main() void {
     const hInstance = @ptrCast(win.HINSTANCE, winapi.GetModuleHandleA(null) orelse unreachable);
@@ -52,55 +53,6 @@ pub export fn main() void {
     }
 }
 
-// pub export fn wWinMain(hInstanceNullable: ?win.HINSTANCE, hPrevInstance: ?win.HINSTANCE, lpCmdLine: ?win.PWSTR, nShowCmd: win.INT) callconv(win.WINAPI) win.INT {
-//     _ = hInstanceNullable;
-//     _ = hPrevInstance;
-//     _ = lpCmdLine;
-//     _ = nShowCmd;
-
-//     // const hInstance = hInstanceNullable orelse unreachable;
-
-//     // const className = std.unicode.utf8ToUtf16LeStringLiteral("OpenGL");
-//     // const class = win.user32.WNDCLASSEXW {
-//     //     .lpszClassName = className,
-//     //     .lpfnWndProc = messageCallback,
-//     //     .hInstance = hInstance,
-//     //     .style = win.user32.CS_OWNDC | win.user32.CS_HREDRAW | win.user32.CS_VREDRAW,
-//     //     .hIcon = null,
-//     //     .hIconSm = null,
-//     //     .hCursor = null,
-//     //     .hbrBackground = null,
-//     //     .lpszMenuName = null,
-//     // };
-
-//     // _ = win.user32.registerClassExW(&class) catch @panic("cannot register class");
-
-//     // const window = win.user32.createWindowExW(
-//     //     0,
-//     //     className,
-//     //     std.unicode.utf8ToUtf16LeStringLiteral(default_window_title),
-//     //     win.user32.WS_OVERLAPPEDWINDOW,
-//     //     win.user32.CW_USEDEFAULT, win.user32.CW_USEDEFAULT,
-//     //     640, 480,
-//     //     null, null, hInstance, null
-//     // ) catch @panic("cannot create window");
-
-//     // _ = win.user32.showWindow(window, nShowCmd);
-
-//     // messageloop: while (true) {
-//     //     var msg: win.user32.MSG = undefined;
-//     //     if (win.user32.getMessageW(&msg, null, 0, 0)) {
-//     //         _ = win.user32.translateMessage(&msg);
-//     //         _ = win.user32.dispatchMessageW(&msg);
-//     //     } else |err| switch (err) {
-//     //         error.Quit => break :messageloop,
-//     //         else => @panic("error getting message in event loop"),
-//     //     }
-//     // }
-
-//     return 0;
-// }
-
 fn messageCallback(hwnd: win.HWND, uMsg: win.UINT, wParam: win.WPARAM, lParam: win.LPARAM) callconv(win.WINAPI) win.LRESULT {
     const glcontext = struct {
         var device: win. HDC = undefined;
@@ -116,6 +68,7 @@ fn messageCallback(hwnd: win.HWND, uMsg: win.UINT, wParam: win.WPARAM, lParam: w
             initEngine();
         },
         win.user32.WM_DESTROY => {
+            deinitEngine();
             if (!win.user32.releaseDC(hwnd, glcontext.device)) @panic("cannot release device context");
             gl.deinitGlContext(glcontext.handle) catch @panic("cannot deinit gl context");
             win.user32.postQuitMessage(0);
